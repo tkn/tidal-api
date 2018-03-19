@@ -17,7 +17,7 @@ class Tidal {
     // some base params for GET requests
     this.params = `limit=10000&countryCode=${this.countryCode}`;
     // params for Tidal pages that require a locale and device type
-    this.localeParams = 'locale=en_US&deviceType=BROWSER&countryCode=US';
+    this.localeParams = `locale=en_US&deviceType=BROWSER&countryCode=${this.countryCode}`;
   }
 
   /**
