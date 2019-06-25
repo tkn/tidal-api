@@ -81,7 +81,7 @@ describe('album', () => {
 
     it('should return an array of album object', async () => {
 
-      await tidal.login(process.env.USERNAME, process.env.PASSWORD);
+      await tidal.login(process.env.TIDAL_USERNAME, process.env.TIDAL_PASSWORD);
 
       const favorites = await tidal.getFavoriteAlbums();
       const album = favorites[0];

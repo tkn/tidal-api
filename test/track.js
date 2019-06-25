@@ -26,7 +26,7 @@ describe('track', () => {
 
     it('should return an array of track objects', async () => {
 
-      await tidal.login(process.env.USERNAME, process.env.PASSWORD);
+      await tidal.login(process.env.TIDAL_USERNAME, process.env.TIDAL_PASSWORD);
       const favorites = await tidal.getFavoriteTracks();
       const track = favorites[0];
 

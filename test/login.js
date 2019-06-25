@@ -12,8 +12,7 @@ const tidal = new Tidal();
 describe('login', () => {
 
   it('should return user and session data', async () => {
-
-    const data = await tidal.login(process.env.USERNAME, process.env.PASSWORD);
+    const data = await tidal.login(process.env.TIDAL_USERNAME, process.env.TIDAL_PASSWORD);
 
     expect(data).to.be.an('object');
 

@@ -43,7 +43,7 @@ describe('playlist', () => {
     });
 
     it('should return an array of playlist objects', async () => {
-      await tidal.login(process.env.USERNAME, process.env.PASSWORD);
+      await tidal.login(process.env.TIDAL_USERNAME, process.env.TIDAL_PASSWORD);
       const favorites = await tidal.getFavoritePlaylists();
       const playlist = favorites[0];
 
@@ -59,12 +59,11 @@ describe('playlist', () => {
     it('should reject if login() has not been called', () => expect(tidal.getPlaylists()).to.eventually.be.rejectedWith(Error));
 
     it('should return an array of playlist objects', async () => {
-      await tidal.login(process.env.USERNAME, process.env.PASSWORD);
+      await tidal.login(process.env.TIDAL_USERNAME, process.env.TIDAL_PASSWORD);
       const playlists = await tidal.getPlaylists();
       const playlist = playlists[0];
 
-      expect(playlists).to.be.an('array')
-        .and.to.have.lengthOf(1);
+      expect(playlists).to.be.an('array');
 
       expect(playlist).to.be.an('object')
         .and.to.have.property('uuid');
