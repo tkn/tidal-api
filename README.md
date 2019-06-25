@@ -31,7 +31,12 @@ var tidal = new Tidal();
 
 ```js
 import Tidal from 'tidal-api-wrapper';
-const tidal = new Tidal();
+// options object as an argument is optional
+// if omitted Tidal will default to these values
+const tidal = new Tidal({
+  countryCode: 'US',
+  limit: 1000
+});
 
 // search for an artist and then get their albums
 tidal.search('Four Year Strong', 'artists', 1)
@@ -74,7 +79,12 @@ tidal.search('Four Year Strong', 'artists', 1)
 
 ```js
 import Tidal from 'tidal-api-wrapper';
-const tidal = new Tidal();
+// options object as an argument is optional
+// if omitted Tidal will default to these values
+const tidal = new Tidal({
+  countryCode: 'US',
+  limit: 1000
+});
 
 // search for an artist and then get their albums
 (async function searchArtistAndGetAlbums() {

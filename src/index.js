@@ -4,10 +4,17 @@ import qs from 'querystring';
 /** Class */
 class Tidal {
 
-  constructor() {
+  /**
+   *
+   * @param {object} [options] - Tidal options (optional)
+   * @param {string} [options.countryCode=US] - Tidal country code
+   * @param {number} [options.limit=1000] - API results limit
+   */
+  constructor(options = {}) {
     this.url = 'https://api.tidal.com/v1';
     this.webToken = 'wdgaB1CilGA-S_s2';
-    this.countryCode = 'US';
+    this.countryCode = options.countryCode || 'US';
+    this.limit = options.limit || 1000;
     this.api = axios.create({
       baseURL: this.url,
       headers: {
@@ -15,9 +22,9 @@ class Tidal {
       },
     });
     // some base params for GET requests
-    this.params = `limit=10000&countryCode=${this.countryCode}`;
+    this.params = `limit=${this.limit}&countryCode=${this.countryCode}`;
     // params for Tidal pages that require a locale and device type
-    this.localeParams = `locale=en_US&deviceType=BROWSER&countryCode=${this.countryCode}`;
+    this.localeParams = `locale=en_${this.countryCode}&deviceType=BROWSER&countryCode=${this.countryCode}`;
   }
 
   /**
@@ -41,27 +48,23 @@ class Tidal {
       throw new Error('Username and password are required arguments of login()');
     }
 
-    try {
-      const params = qs.stringify({
-        username,
-        password,
-      });
+    const params = qs.stringify({
+      username,
+      password,
+    });
 
-      const res = await this.api({
-        method: 'POST',
-        url: `/login/username?token=${this.webToken}`,
-        data: params,
-      });
+    const res = await this.api({
+      method: 'POST',
+      url: `/login/username?token=${this.webToken}`,
+      data: params,
+    });
 
-      // store this info for use in other methods
-      this.userId = res.data.userId;
-      this.sessionId = res.data.sessionId;
-      this.params = `${this.params}&sessionId=${res.data.sessionId}`;
+    // store this info for use in other methods
+    this.userId = res.data.userId;
+    this.sessionId = res.data.sessionId;
+    this.params = `${this.params}&sessionId=${res.data.sessionId}`;
 
-      return res.data;
-    } catch (e) {
-      throw e;
-    }
+    return res.data;
   }
 
   /**
@@ -97,16 +100,12 @@ class Tidal {
       throw new Error(`${type} is not a valid search type('artists', 'albums', 'tracks', 'playlists' are valid).`);
     }
 
-    try {
-      const res = await this.api({
-        method: 'GET',
-        url: `/search/${type}?query=${query}&limit=${limit}&countryCode=${this.countryCode}`,
-      });
+    const res = await this.api({
+      method: 'GET',
+      url: `/search/${type}?query=${query}&limit=${limit}&countryCode=${this.countryCode}`,
+    });
 
-      return res.data.items;
-    } catch (e) {
-      throw e;
-    }
+    return res.data.items;
   }
 
   /**
@@ -159,16 +158,12 @@ class Tidal {
   */
   async getTrack(id) {
 
-    try {
-      const res = await this.api({
-        method: 'GET',
-        url: `/tracks/${id}?${this.params}`,
-      });
+    const res = await this.api({
+      method: 'GET',
+      url: `/tracks/${id}?${this.params}`,
+    });
 
-      return res.data;
-    } catch (e) {
-      throw e;
-    }
+    return res.data;
   }
 
   /**
@@ -186,21 +181,16 @@ class Tidal {
       throw new Error('You must call the login method first');
     }
 
-    try {
+    const res = await this.api({
+      method: 'GET',
+      url: `/users/${this.userId}/favorites/tracks?${this.params}`,
+    });
 
-      const res = await this.api({
-        method: 'GET',
-        url: `/users/${this.userId}/favorites/tracks?${this.params}`,
-      });
+    const { items } = res.data;
 
-      const { items } = res.data;
+    const tracks = items.map(item => item.item);
 
-      const tracks = items.map(item => item.item);
-
-      return tracks;
-    } catch (e) {
-      throw e;
-    }
+    return tracks;
   }
 
   /**
@@ -252,16 +242,12 @@ class Tidal {
   */
   async getAlbum(id) {
 
-    try {
-      const res = await this.api({
-        method: 'GET',
-        url: `/albums/${id}?${this.params}`,
-      });
+    const res = await this.api({
+      method: 'GET',
+      url: `/albums/${id}?${this.params}`,
+    });
 
-      return res.data;
-    } catch (e) {
-      throw e;
-    }
+    return res.data;
   }
 
   /**
@@ -275,43 +261,33 @@ class Tidal {
   */
   async getAlbumTracks(id) {
 
-    try {
-      const res = await this.api({
-        method: 'GET',
-        url: `/albums/${id}/tracks?${this.params}`,
-      });
+    const res = await this.api({
+      method: 'GET',
+      url: `/albums/${id}/tracks?${this.params}`,
+    });
 
-      return res.data.items;
-    } catch (e) {
-      throw e;
-    }
+    return res.data.items;
   }
 
   // this is an internal method and so won't be included in JSDOC
   async getFeaturedAlbums() {
 
-    try {
+    const res = await this.api({
+      method: 'GET',
+      url: `/pages/show_more_featured_albums?${this.localeParams}`,
+    });
 
-      const res = await this.api({
-        method: 'GET',
-        url: `/pages/show_more_featured_albums?${this.localeParams}`,
-      });
+    const { tabs } = res.data.rows[0].modules[0];
 
-      const { tabs } = res.data.rows[0].modules[0];
+    const topAlbums = tabs.find(tab => tab.key === 'featured-top');
+    const newAlbums = tabs.find(tab => tab.key === 'featured-new');
+    const staffPicks = tabs.find(tab => tab.key === 'featured-recommended');
 
-      const topAlbums = tabs.find(tab => tab.key === 'featured-top');
-      const newAlbums = tabs.find(tab => tab.key === 'featured-new');
-      const staffPicks = tabs.find(tab => tab.key === 'featured-recommended');
-
-      return {
-        topAlbums: topAlbums.pagedList.items,
-        newAlbums: newAlbums.pagedList.items,
-        staffPicks: staffPicks.pagedList.items,
-      };
-
-    } catch (e) {
-      throw e;
-    }
+    return {
+      topAlbums: topAlbums.pagedList.items,
+      newAlbums: newAlbums.pagedList.items,
+      staffPicks: staffPicks.pagedList.items,
+    };
   }
 
   /**
@@ -324,15 +300,9 @@ class Tidal {
   */
   async getTopAlbums() {
 
-    try {
+    const featuredAlbums = await this.getFeaturedAlbums();
 
-      const featuredAlbums = await this.getFeaturedAlbums();
-
-      return featuredAlbums.topAlbums;
-
-    } catch (e) {
-      throw e;
-    }
+    return featuredAlbums.topAlbums;
   }
 
   /**
@@ -345,15 +315,9 @@ class Tidal {
   */
   async getNewAlbums() {
 
-    try {
+    const featuredAlbums = await this.getFeaturedAlbums();
 
-      const featuredAlbums = await this.getFeaturedAlbums();
-
-      return featuredAlbums.newAlbums;
-
-    } catch (e) {
-      throw e;
-    }
+    return featuredAlbums.newAlbums;
   }
 
   /**
@@ -366,15 +330,9 @@ class Tidal {
   */
   async getStaffPickAlbums() {
 
-    try {
+    const featuredAlbums = await this.getFeaturedAlbums();
 
-      const featuredAlbums = await this.getFeaturedAlbums();
-
-      return featuredAlbums.staffPicks;
-
-    } catch (e) {
-      throw e;
-    }
+    return featuredAlbums.staffPicks;
   }
 
   /**
@@ -392,21 +350,16 @@ class Tidal {
       throw new Error('You must call the login method first');
     }
 
-    try {
+    const res = await this.api({
+      method: 'GET',
+      url: `/users/${this.userId}/favorites/albums?${this.params}`,
+    });
 
-      const res = await this.api({
-        method: 'GET',
-        url: `/users/${this.userId}/favorites/albums?${this.params}`,
-      });
+    const { items } = res.data;
 
-      const { items } = res.data;
+    const albums = items.map(item => item.item);
 
-      const albums = items.map(item => item.item);
-
-      return albums;
-    } catch (e) {
-      throw e;
-    }
+    return albums;
   }
 
   /**
@@ -427,16 +380,12 @@ class Tidal {
   */
   async getArtist(id) {
 
-    try {
-      const res = await this.api({
-        method: 'GET',
-        url: `/artists/${id}?${this.params}`,
-      });
+    const res = await this.api({
+      method: 'GET',
+      url: `/artists/${id}?${this.params}`,
+    });
 
-      return res.data;
-    } catch (e) {
-      throw e;
-    }
+    return res.data;
   }
 
   /**
@@ -450,16 +399,12 @@ class Tidal {
   */
   async getArtistAlbums(id) {
 
-    try {
-      const res = await this.api({
-        method: 'GET',
-        url: `/artists/${id}/albums?${this.params}`,
-      });
+    const res = await this.api({
+      method: 'GET',
+      url: `/artists/${id}/albums?${this.params}`,
+    });
 
-      return res.data.items;
-    } catch (e) {
-      throw e;
-    }
+    return res.data.items;
   }
 
   /**
@@ -473,16 +418,12 @@ class Tidal {
   */
   async getArtistEPsAndSingles(id) {
 
-    try {
-      const res = await this.api({
-        method: 'GET',
-        url: `/artists/${id}/albums?${this.params}&filter=EPSANDSINGLES`,
-      });
+    const res = await this.api({
+      method: 'GET',
+      url: `/artists/${id}/albums?${this.params}`,
+    });
 
-      return res.data.items;
-    } catch (e) {
-      throw e;
-    }
+    return res.data.items;
   }
 
   /**
@@ -496,16 +437,12 @@ class Tidal {
   */
   async getArtistCompilations(id) {
 
-    try {
-      const res = await this.api({
-        method: 'GET',
-        url: `/artists/${id}/albums?${this.params}&filter=COMPILATIONS`,
-      });
+    const res = await this.api({
+      method: 'GET',
+      url: `/artists/${id}/albums?${this.params}&filter=COMPILATIONS`,
+    });
 
-      return res.data.items;
-    } catch (e) {
-      throw e;
-    }
+    return res.data.items;
   }
 
   /**
@@ -520,16 +457,12 @@ class Tidal {
   */
   async getArtistTopTracks(id, limit = 10) {
 
-    try {
-      const res = await this.api({
-        method: 'GET',
-        url: `/artists/${id}/toptracks?limit=${limit}&countryCode=${this.countryCode}`,
-      });
+    const res = await this.api({
+      method: 'GET',
+      url: `/artists/${id}/toptracks?limit=${limit}&countryCode=${this.countryCode}`,
+    });
 
-      return res.data.items;
-    } catch (e) {
-      throw e;
-    }
+    return res.data.items;
   }
 
   /**
@@ -542,17 +475,12 @@ class Tidal {
   * @see {@link Tidal#getArtist} - artist object example
   */
   async getSimilarArtists(id) {
-    try {
+    const res = await this.api({
+      method: 'GET',
+      url: `/artists/${id}/similar?${this.params}`,
+    });
 
-      const res = await this.api({
-        method: 'GET',
-        url: `/artists/${id}/similar?${this.params}`,
-      });
-
-      return res.data.items;
-    } catch (e) {
-      throw e;
-    }
+    return res.data.items;
   }
 
   /**
@@ -570,21 +498,16 @@ class Tidal {
       throw new Error('You must call the login method first');
     }
 
-    try {
+    const res = await this.api({
+      method: 'GET',
+      url: `/users/${this.userId}/favorites/artists?${this.params}`,
+    });
 
-      const res = await this.api({
-        method: 'GET',
-        url: `/users/${this.userId}/favorites/artists?${this.params}`,
-      });
+    const { items } = res.data;
 
-      const { items } = res.data;
+    const artists = items.map(item => item.item);
 
-      const artists = items.map(item => item.item);
-
-      return artists;
-    } catch (e) {
-      throw e;
-    }
+    return artists;
   }
 
   /**
@@ -622,16 +545,12 @@ class Tidal {
   */
   async getPlaylist(uuid) {
 
-    try {
-      const res = await this.api({
-        method: 'GET',
-        url: `/playlists/${uuid}?${this.params}`,
-      });
+    const res = await this.api({
+      method: 'GET',
+      url: `/playlists/${uuid}?${this.params}`,
+    });
 
-      return res.data;
-    } catch (e) {
-      throw e;
-    }
+    return res.data;
   }
 
   /**
@@ -645,16 +564,12 @@ class Tidal {
   */
   async getPlaylistTracks(uuid) {
 
-    try {
-      const res = await this.api({
-        method: 'GET',
-        url: `/playlists/${uuid}/tracks?${this.params}`,
-      });
+    const res = await this.api({
+      method: 'GET',
+      url: `/playlists/${uuid}/tracks?${this.params}`,
+    });
 
-      return res.data.items;
-    } catch (e) {
-      throw e;
-    }
+    return res.data.items;
   }
 
   /**
@@ -672,21 +587,39 @@ class Tidal {
       throw new Error('You must call the login method first');
     }
 
-    try {
+    const res = await this.api({
+      method: 'GET',
+      url: `/users/${this.userId}/favorites/playlists?${this.params}`,
+    });
 
-      const res = await this.api({
-        method: 'GET',
-        url: `/users/${this.userId}/favorites/playlists?${this.params}`,
-      });
+    const { items } = res.data;
 
-      const { items } = res.data;
+    const playlists = items.map(item => item.item);
 
-      const playlists = items.map(item => item.item);
+    return playlists;
+  }
 
-      return playlists;
-    } catch (e) {
-      throw e;
+  /**
+  * get your created playlists (requires login() to be called)
+  * @example tidal.getPlaylists()
+  * @returns {Promise}
+  * @fulfil {Array} - an array of playlist objects
+  * @reject {Error}
+  * @see {@link Tidal#login} - login method must be called first
+  * @see {@link Tidal#getPlaylist} - playlist object example
+  */
+  async getPlaylists() {
+
+    if (!this.userId || !this.sessionId) {
+      throw new Error('You must call the login method first');
     }
+
+    const res = await this.api({
+      method: 'GET',
+      url: `/users/${this.userId}/playlists?${this.params}`,
+    });
+
+    return res.data.items;
   }
 
   /**

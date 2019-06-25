@@ -6,6 +6,7 @@ Class
 **Kind**: global class  
 
 * [Tidal](#Tidal)
+    * [new Tidal([options])](#new_Tidal_new)
     * [.login(username, password)](#Tidal+login) ⇒ <code>Promise</code>
     * [.search(query, type, [limit])](#Tidal+search) ⇒ <code>Promise</code>
     * [.getTrack(id)](#Tidal+getTrack) ⇒ <code>Promise</code>
@@ -26,8 +27,19 @@ Class
     * [.getPlaylist(uuid)](#Tidal+getPlaylist) ⇒ <code>Promise</code>
     * [.getPlaylistTracks(uuid)](#Tidal+getPlaylistTracks) ⇒ <code>Promise</code>
     * [.getFavoritePlaylists()](#Tidal+getFavoritePlaylists) ⇒ <code>Promise</code>
+    * [.getPlaylists()](#Tidal+getPlaylists) ⇒ <code>Promise</code>
     * [.artistPicToUrl(uuid)](#Tidal+artistPicToUrl) ⇒ <code>Object</code>
     * [.albumArtToUrl(uuid)](#Tidal+albumArtToUrl) ⇒ <code>Object</code>
+
+<a name="new_Tidal_new"></a>
+
+### new Tidal([options])
+
+| Param | Type | Default | Description |
+| --- | --- | --- | --- |
+| [options] | <code>object</code> |  | Tidal options (optional) |
+| [options.countryCode] | <code>string</code> | <code>&quot;US&quot;</code> | Tidal country code |
+| [options.limit] | <code>number</code> | <code>1000</code> | API results limit |
 
 <a name="Tidal+login"></a>
 
@@ -494,6 +506,23 @@ get your favorite (starred) playlists (requires login() to be called)
 **Example**  
 ```js
 tidal.getFavoritePlaylists()
+```
+<a name="Tidal+getPlaylists"></a>
+
+### tidal.getPlaylists() ⇒ <code>Promise</code>
+get your created playlists (requires login() to be called)
+
+**Kind**: instance method of [<code>Tidal</code>](#Tidal)  
+**Fulfil**: <code>Array</code> - an array of playlist objects  
+**Reject**: <code>Error</code>  
+**See**
+
+- [login](#Tidal+login) - login method must be called first
+- [getPlaylist](#Tidal+getPlaylist) - playlist object example
+
+**Example**  
+```js
+tidal.getPlaylists()
 ```
 <a name="Tidal+artistPicToUrl"></a>
 
